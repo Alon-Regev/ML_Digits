@@ -5,7 +5,7 @@ PLOT_POINTS = 201
 
 # class implements a general gradient descent algorithm
 class GradientDescent:
-    def __init__(self, learning_rate: float, max_iterations: int, parameter_count: int, data: dict, function: callable, derivatives: list):
+    def __init__(self, learning_rate: float, max_iterations: int, parameter_count: int, data: dict, function: callable, derivatives: list = None):
         """
         constructor for gradient descent
         input: 
@@ -16,7 +16,6 @@ class GradientDescent:
             derivatives [list]: list of derivatives of function (x, params) -> df/dp_i
         """
         self.function = function
-        self.derivatives = derivatives
         self.learning_rate = learning_rate
         self.max_iterations = max_iterations
         self.parameter_count = parameter_count
@@ -24,8 +23,21 @@ class GradientDescent:
         # store history of parameters and errors
         self.parameters = []
         self.errors = []
-
         self.final_parameters = ()
+        # set derivatives
+        if derivatives is None:
+            # calculate derivatives by finite differences
+            self.derivatives = []
+            for i in range(self.parameter_count):
+                def derivative(x, params):
+                    params[i] += 1e-6
+                    f1 = self.function(x, params)
+                    params[i] -= 1e-6
+                    f2 = self.function(x, params)
+                    return (f1 - f2) / 1e-6
+                self.derivatives.append(derivative)
+        else:
+            self.derivatives = derivatives
 
     def error(self, parameters: list) -> float:
         """
