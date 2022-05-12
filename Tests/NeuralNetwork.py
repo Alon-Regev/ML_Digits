@@ -2,48 +2,48 @@ import numpy
 import random
 import matplotlib.pyplot as plt
 
-LEARNING_RATE = 0.1
+LEARNING_RATE = 0.004
 
 def main():
     # layers: [2 inputs, 4 hidden, 1 output]
-    layers_sizes = [2, 1]
-    weights = [0, 0]
-    bias = 0
+    layers_sizes = [2, 2]
+    weights = numpy.zeros(shape=(layers_sizes[0], layers_sizes[1]))
+    biases = numpy.zeros(shape=(layers_sizes[1]))
 
     def get_data():
-        inputs = [random.random() / 3 + 1/12 for _ in range(2)]
-        output = sum(inputs)
-        return (inputs, output)
+        inputs = [random.random() * 1/3 + 1/12 for _ in range(layers_sizes[0])]
+        outputs = [inputs[0] + inputs[1], 4 * inputs[0] * inputs[1]]
+        return (inputs, outputs)
 
     def get_output(inp):
-        return sigmoid(sum([weights[j] * inp[j] for j in range(2)]) + bias)
+        return sigmoid(numpy.dot(inp, weights) + biases)
 
-    for iteration in range(50000):
+    for iteration in range(500000):
         # calculate derivatives
         # f = sum(weight * i) + bias
         # output = s(f)
         # error = sum((output - y) ^ 2
         # dE/dp = dE/dout * dout/df * df/dp
         #       = 2 * (output - y) * s'(f) * df/dp
-        # dE/dw = 2 * (output - y) * s'(f) * x
+        # dE/dw = 2 * (output - y) * s'(f) * inp
         # dE/db = 2 * (output - y) * s'(f)
 
-        # get output
-        inp, out = get_data()
-        f = sum([weights[j] * inp[j] for j in range(2)]) + bias
-        sdf = sigmoid_derivative(f)
-        output = sigmoid(f)
+        # for each output
+        inp, real_out = get_data()
+        f = numpy.dot(inp, weights) + biases
+        dsigmoid_f = sigmoid_derivative(f)
+        outputs = sigmoid(f)
         # update parameters
-        db = 2 * (output - out) * sdf
-        bias -= db * LEARNING_RATE
-        for j in range(len(weights)):
-            weights[j] -= db * inp[j] * LEARNING_RATE
+        db = 2 * (outputs - real_out) * dsigmoid_f
+        dw = 2 * dsigmoid_f * numpy.outer(outputs - real_out, inp)
+        biases -= db * LEARNING_RATE
+        weights -= dw * LEARNING_RATE
 
     # calculate error
     error = 0
     for _ in range(1000):
         d = get_data()
-        error += (get_output(d[0]) - d[1]) ** 2
+        error += sum((get_output(d[0]) - d[1]) ** 2)
     print("Error:", error)
 
     # play with result
