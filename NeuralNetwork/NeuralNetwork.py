@@ -60,7 +60,7 @@ class NeuralNetwork():
             out = self.predict(test[0])
             total_error += (out - test[1]) ** 2
         # return average error
-        return total_error / len(test_data)
+        return sum(total_error) / (len(test_data) * len(total_error))
 
     def predict(self, inputs: list) -> list:
         """
