@@ -23,7 +23,6 @@ def main():
         print(f"Iteration {i}, Error = {nn.test(test_data)}")
     nn.save(f"nn.npz")
 
-
 def to_out(y):
     return (np.arange(10) == y).astype(int)
 
