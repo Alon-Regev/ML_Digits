@@ -21,9 +21,7 @@ def main():
         nn.fit(training_data, iterations=100000)
         # test
         print(f"Iteration {i}, Error = {nn.test(test_data)}")
-        if i % 100 == 0:
-            nn.save(f"nn{1 + i // 100}M.npz")
-            print("Saved")
+    nn.save(f"nn.npz")
 
 
 def to_out(y):
