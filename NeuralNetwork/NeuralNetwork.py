@@ -75,6 +75,26 @@ class NeuralNetwork():
             out = sigmoid(out.dot(self.weights[i]) + self.biases[i])
         return out
 
+    def save(self, path: str) -> None:
+        """
+        method saves the current neural network to a file.
+        input:
+            path: path to save the file to
+        return: None
+        """
+        np.savez(path, weights=self.weights, biases=self.biases)
+        
+    def load(self, path: str) -> None:
+        """
+        method loads a neural network from a file.
+        input:
+            path: path to load the file from
+        return: None
+        """
+        data = np.load(path)
+        self.weights = data['weights']
+        self.biases = data['biases']
+
 # activation function definition
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
