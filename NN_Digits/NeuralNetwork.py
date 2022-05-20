@@ -93,7 +93,7 @@ class NeuralNetwork():
             path: path to load the file from
         return: None
         """
-        data = np.load(path)
+        data = np.load(path, allow_pickle=True)
         self.weights = data['weights']
         self.biases = data['biases']
 

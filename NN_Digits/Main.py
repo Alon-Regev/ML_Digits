@@ -2,6 +2,8 @@ from mnist import MNIST
 from NeuralNetwork import NeuralNetwork
 import numpy as np
 
+NeuralNetwork.LEARNING_RATE = 0.01
+
 def main():
     # prepare training dataset and test dataset
     # get data as list of tuples (inputs, outputs)
@@ -15,14 +17,14 @@ def main():
     layers_sizes = [784, 128, 10]
     nn = NeuralNetwork(layers_sizes)
     
-    for i in range(101):
-        nn.fit(training_data, iterations=1000)
-        # test
-        if i % 10 == 0:
-            print(f"Iteration {i * 1000}, Error = {nn.test(test_data)}")
-    # print random examples
     for i in range(10):
-        print(to_out(i), nn.predict(test_data[i][0]))
+        nn.fit(training_data, iterations=100000)
+        # test
+        print(f"Iteration {i}, Error = {nn.test(test_data)}")
+        if i % 100 == 0:
+            nn.save(f"nn{1 + i // 100}M.npz")
+            print("Saved")
+
 
 def to_out(y):
     return (np.arange(10) == y).astype(int)
