@@ -1,36 +1,54 @@
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 import numpy as np
 from NeuralNetwork import NeuralNetwork
 
 def main():
     # open image as grayscale
-    img = Image.open("pic.png").convert("L")
+    img = Image.open("pic.jpeg").convert("L")
+    # process image
+    data = process_image(np.array(img.copy()))
     # load neural network
     nn = NeuralNetwork([784, 128, 10])
     nn.load("nn.npz")
     
     # get digits from picture
-    digit_img = get_digits_from_picture(np.array(img.copy()))
+    digit_img = get_digits_from_picture(data)
     # draw rectangle over symbols
     draw = ImageDraw.Draw(img)
     for i in digit_img:
         symbol = i[2]
-        draw.rectangle((i[0], i[1], i[0] + symbol.shape[1], i[1] + symbol.shape[0]), outline="#999")
+        # check symbol size
+        if symbol.shape[0] < 50 or symbol.shape[1] < 50:
+            continue
+        # thick rectangle
+        draw.rectangle((i[0], i[1], i[0] + symbol.shape[1], i[1] + symbol.shape[0]), outline="#777", width=2)
         symbol = resize_symbol(symbol)
         # predict digit
         prediction = nn.predict(symbol.reshape(784))
         # draw digit
-        x, y = i[0], i[1] - 20
+        x, y = i[0], i[1] - 30
         digit = np.argmax(prediction)
         confidence = np.max(prediction)
-        font = ImageDraw.ImageFont.truetype("arial.ttf", 18)
-        if confidence < 0.6:
-            # draw with big font
-            draw.text((x, y), "??", fill="#000", font=font)
-        else:
-            draw.text((x, y), f"{digit} {int(100 * confidence)}%", fill="#000", font=font)
+        font = ImageDraw.ImageFont.truetype("arial.ttf", 24)
+        draw.text((x, y), f"{digit}  {int(100 * confidence)}%", fill="#000", font=font)
     img.show()
 
+def process_image(img):
+    """
+    function processes image before digit recognition
+    input: 
+        img: numpy array of image
+    return: 
+        numpy array of image
+    """
+    # turn bright pixels to white
+    img[img > 125] = 255
+    # blur and darken image
+    img = Image.fromarray(img)
+    img = img.filter(ImageFilter.GaussianBlur(radius=5))
+    img = img.point(lambda p: max(0, 255 - 2.5 * (255 - p)))
+    return np.array(img)
+    
 def get_digits_from_picture(img):
     """
     function finds a digit from a picture
