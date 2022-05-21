@@ -1,15 +1,19 @@
 from PIL import Image, ImageDraw, ImageFilter
 import numpy as np
 from NeuralNetwork import NeuralNetwork
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
 
 def main():
+    Tk().withdraw()
+    nn = NeuralNetwork([784, 128, 10])
+    nn.load("nn.npz")
     # open image as grayscale
-    img = Image.open("pic.jpeg").convert("L")
+    filename = askopenfilename()
+    img = Image.open(filename).convert("L")
     # process image
     data = process_image(np.array(img.copy()))
     # load neural network
-    nn = NeuralNetwork([784, 128, 10])
-    nn.load("nn.npz")
     
     # get digits from picture
     digit_img = get_digits_from_picture(data)
@@ -18,7 +22,7 @@ def main():
     for i in digit_img:
         symbol = i[2]
         # check symbol size
-        if symbol.shape[0] < 50 or symbol.shape[1] < 50:
+        if symbol.shape[0] < 25 or symbol.shape[1] < 25:
             continue
         # thick rectangle
         draw.rectangle((i[0], i[1], i[0] + symbol.shape[1], i[1] + symbol.shape[0]), outline="#777", width=2)
@@ -45,8 +49,8 @@ def process_image(img):
     img[img > 125] = 255
     # blur and darken image
     img = Image.fromarray(img)
-    img = img.filter(ImageFilter.GaussianBlur(radius=5))
-    img = img.point(lambda p: max(0, 255 - 2.5 * (255 - p)))
+    img = img.filter(ImageFilter.GaussianBlur(radius=3))
+    img = img.point(lambda p: max(0, 255 - 3 * (255 - p)))
     return np.array(img)
     
 def get_digits_from_picture(img):
@@ -84,23 +88,23 @@ def extract_symbol(img, x, y, w=4, h=4):
     """
     # get border
     top = img[y, x:x+w]
-    bottom = img[y+h, x:x+w]
+    bottom = img[min(y+h, img.shape[0]-1), x:x+w]
     left = img[y:y+h, x]
-    right = img[y:y+h, x+w]
+    right = img[y:y+h, min(x+w, img.shape[1]-1)]
     # check if border intersects white pixels
     try_again = False
-    if any(top != 255):
+    if any(top != 255) and y != 0:
         y -= 1
         h += 1
         try_again = True
-    if any(bottom != 255):
+    if any(bottom != 255) and y + h < img.shape[0]:
         h += 1
         try_again = True
-    if any(left != 255):
+    if any(left != 255) and x != 0:
         x -= 1
         w += 1
         try_again = True
-    if any(right != 255):
+    if any(right != 255) and x + w < img.shape[1]:
         w += 1
         try_again = True
     # if border intersects, try again
