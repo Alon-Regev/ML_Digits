@@ -1,18 +1,34 @@
 from PIL import Image, ImageDraw
 import numpy as np
+from NeuralNetwork import NeuralNetwork
 
 def main():
     # open image as grayscale
     img = Image.open("pic.png").convert("L")
-    # to numpy
-    #img = np.array(img)
+    # load neural network
+    nn = NeuralNetwork([784, 128, 10])
+    nn.load("nn.npz")
     
+    # get digits from picture
     digit_img = get_digits_from_picture(np.array(img.copy()))
     # draw rectangle over symbols
     draw = ImageDraw.Draw(img)
     for i in digit_img:
-        draw.rectangle((i[0], i[1], i[0] + i[2].shape[1], i[1] + i[2].shape[0]), outline="#999")
-    
+        symbol = i[2]
+        draw.rectangle((i[0], i[1], i[0] + symbol.shape[1], i[1] + symbol.shape[0]), outline="#999")
+        symbol = resize_symbol(symbol)
+        # predict digit
+        prediction = nn.predict(symbol.reshape(784))
+        # draw digit
+        x, y = i[0], i[1] - 20
+        digit = np.argmax(prediction)
+        confidence = np.max(prediction)
+        font = ImageDraw.ImageFont.truetype("arial.ttf", 18)
+        if confidence < 0.6:
+            # draw with big font
+            draw.text((x, y), "??", fill="#000", font=font)
+        else:
+            draw.text((x, y), f"{digit} {int(100 * confidence)}%", fill="#000", font=font)
     img.show()
 
 def get_digits_from_picture(img):
@@ -74,6 +90,23 @@ def extract_symbol(img, x, y, w=4, h=4):
         return extract_symbol(img, x, y, w, h)
     else:
         return x, y, w, h, img[y:y+h+1, x:x+w+1].copy()
+
+def resize_symbol(img):
+    """
+    function resizes image to correct size for digit recognition
+    input: 
+        img: numpy array of symbol (any size, grayscale)
+    return: 
+        numpy array of symbol (28x28 pixels)
+    """
+    # resize image to 28x28
+    img = Image.fromarray(img)
+    img.thumbnail((24, 24), Image.ANTIALIAS)
+    # paste on white background
+    back = Image.new("L", (28, 28), 255)
+    back.paste(img, ((28 - img.width) // 2, (28 - img.height) // 2))
+    # invert and return as data
+    return 1 - np.array(back) / 255
 
 if __name__ == "__main__":
     main()
