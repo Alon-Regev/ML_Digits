@@ -10,3 +10,9 @@ Project contains:
 # How to use
 run Main.py from any of the files. <br/>
 requires numpy, pillow and mnist dataset library for training progra (or you can use the already trained model).
+
+# Accuracy
+![image](https://user-images.githubusercontent.com/71284855/170076161-437d7bb4-3c36-4cdc-a7c2-ee514c7920ca.png)
+<br/>
+It has some issues reading from paper with some of the digits, so the overall accuracy from a picture is around 67%. <br/>
+![image](https://user-images.githubusercontent.com/71284855/170076333-5dffee4a-9b7e-4185-94e2-516ce7792ec0.png)
